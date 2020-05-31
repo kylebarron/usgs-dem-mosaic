@@ -1,7 +1,8 @@
 import sys
 
-import boto3
 import click
+
+from usgs_dem_mosaic.s3 import list_s3 as _list_s3
 
 
 @click.command()
@@ -30,25 +31,12 @@ import click
 def list_s3(bucket, prefix, ext):
     """Get listing of files on S3 with prefix and extension
     """
-    s3 = boto3.resource('s3')
-    s3_bucket = s3.Bucket(bucket)
-
-    if ext:
-        ext = '.' + ext.lstrip('.')
-    else:
-        ext = ''
-
     counter = 0
-    for item in s3_bucket.objects.filter(Prefix=prefix):
+    for key in _list_s3(bucket, prefix, ext):
         counter += 1
         if counter % 5000 == 0:
             print(f'Found {counter} items so far', file=sys.stderr)
 
-        key = item.key
-        if not key.endswith(ext):
-            continue
-
-        # Write to stdout
         print(key)
 
 
